@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  push-sms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/api/push-sms
+    environment:
+      XDEBUG_CONFIG: "client_host=127.0.0.1 discover_client_host=1 client_port=9000 idekey=PHPSTORM remote_handler=dbgp log_level=7"
+      XDEBUG_MODE: "debug,trace"
+      PHP_IDE_CONFIG: "serverName=Docker"
+    working_dir: /api/push-sms
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.222.0/28
+  traefik_default:
+    external: true
