@@ -6,3 +6,5 @@ gen
 
 /.phpunit.result.cache
 /vendor/
+
+.env

@@ -10,7 +10,7 @@ namespace rame0\API\PushSMS;
 
 class Statuses
 {
-
+    private array $messages = [];
 
     /**
      * Ошибка оператора (финальный)
@@ -449,4 +449,14 @@ class Statuses
      * @var int
      */
     public const SMPP_ANTI_SPAM_BLOCK = 2291;
+
+    /**
+     * @param $code
+     * @return string
+     */
+    public static function getMessage($code): string
+    {
+        // TODO: Реализовать получение текста сообщения.
+        return "Код сообщения: $code. Подробности смотрите в документации. https://docs.pushsms.ru/#/statuses";
+    }
 }

@@ -2,48 +2,76 @@
 
 namespace API\PushSMS;
 
+use Dotenv\Dotenv;
+use GuzzleHttp\Exception\GuzzleException;
 use PHPUnit\Framework\TestCase;
+use rame0\API\PushSMS\Endpoints\BulkDelivery;
+use rame0\API\PushSMS\Endpoints\Delivery;
+use rame0\API\PushSMS\Exceptions\RequestException;
 use rame0\API\PushSMS\PushSMS;
+use rame0\API\PushSMS\Types\DispatchRoutingTypes;
 
 class PushSMSTest extends TestCase
 {
     private PushSMS $_api;
 
+
     public function __construct()
     {
         parent::__construct();
-        $this->_api = new PushSMS('123');
+        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../../');
+        $dotenv->load();
+
+        $this->_api = new PushSMS($_ENV['API_TOKEN']);
     }
 
-    public function testAuthorisation()
+    /**
+     * @return void
+     * @throws GuzzleException
+     * @throws RequestException
+     */
+    public function testBulkDelivery()
     {
-        // No Authorization header provided
-        $this->assertSame($this->_api->isAuthorised(), false);
+        $endpoint = new BulkDelivery(
+            'test',
+            explode(',', $_ENV['PHONES'] ?? ''),
+        );
 
-        // Correct Authorization header
-        $_SERVER['HTTP_Authorization'] = '123';
-        $this->assertSame($this->_api->isAuthorised(), true);
+        $endpoint
+            ->setSenderName($_ENV['SENDER_NAME'])
+            ->setDispatchRouting([
+                DispatchRoutingTypes::WHATSAPP,
+                DispatchRoutingTypes::TELEGRAM_BOT,
+                DispatchRoutingTypes::TELEGRAM_NUMBER
+            ]);
 
-        // Incorrect Authorization header
-        $_SERVER['HTTP_Authorization'] = '556286';
-        $this->assertSame($this->_api->isAuthorised(), false);
-
+        $response = $this->_api->request($endpoint);
+        $this->assertEquals(200, $response->meta->code);
     }
 
-    public function testPostBody()
+    /**
+     * @return void
+     * @throws GuzzleException
+     * @throws RequestException
+     */
+    public function testDelivery()
     {
-        $_SERVER['HTTP_Authorization'] = '123';
+        $endpoint = new Delivery(
+            'test',
+            $_ENV['PHONE'] ?? '',
 
-        $body = $this->_api->parsePostBody('false');
-        $this->assertEquals(false, $body);
+        );
 
-        $body = $this->_api->parsePostBody();
-        $this->assertEquals(null, $body);
+        $endpoint
+            ->setSenderName($_ENV['SENDER_NAME'])
+            ->setDispatchRouting([
+                DispatchRoutingTypes::WHATSAPP,
+                DispatchRoutingTypes::TELEGRAM_BOT,
+                DispatchRoutingTypes::TELEGRAM_NUMBER
+            ]);
 
-        $body = $this->_api->parsePostBody("{'api':1, 'body':2}");
-        $this->assertEquals(null, $body);
-
-        $body = $this->_api->parsePostBody(json_encode(['api' => 1, 'body' => 2]));
-        $this->assertEquals(['api' => 1, 'body' => 2], $body);
+        $response = $this->_api->request($endpoint);
+        $this->assertEquals(200, $response->meta->code);
     }
+
 }
